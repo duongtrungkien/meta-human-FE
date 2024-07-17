@@ -11,12 +11,7 @@
       color: #c8c8c8;
     }
 
-    section {
-      border-top: 2px solid #272b30;
-    }
-
     main {
-      border-bottom: 2px solid #272b30;
       padding-bottom: 1em;
     }
 
@@ -169,12 +164,7 @@
     }
 
     #remote-streams>li .button::before {
-      content: "\2799";
       padding-right: 0.2em;
-    }
-
-    #remote-streams>li.has-session .button::before {
-      content: "\2798";
     }
 
     #remote-streams>li div.video {
@@ -229,75 +219,8 @@
         connected: function(clientId) { clientIdElement.textContent = clientId; },
         disconnected: function() { clientIdElement.textContent = "none"; }
       };
+      console.log(listener)
       api.registerConnectionListener(listener);
-
-      document.getElementById("capture-button").addEventListener("click", (event) => {
-        event.preventDefault();
-
-        if (captureSection._producerSession) {
-          captureSection._producerSession.close();
-        } else if (!captureSection.classList.contains("starting")) {
-          captureSection.classList.add("starting");
-
-          const constraints = {
-            video: { width: 1280, height: 720 }
-          };
-          navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
-            const session = api.createProducerSession(stream);
-            if (session) {
-              captureSection._producerSession = session;
-
-              session.addEventListener("error", (event) => {
-                if (captureSection._producerSession === session) {
-                  console.error(event.message, event.error);
-                }
-              });
-
-              session.addEventListener("closed", () => {
-                if (captureSection._producerSession === session) {
-                  videoElement.pause();
-                  videoElement.srcObject = null;
-                  captureSection.classList.remove("has-session", "starting");
-                  delete captureSection._producerSession;
-                }
-              });
-
-              session.addEventListener("stateChanged", (event) => {
-                if ((captureSection._producerSession === session) &&
-                  (event.target.state === GstWebRTCAPI.SessionState.streaming)) {
-                  videoElement.srcObject = stream;
-                  videoElement.play().catch(() => {});
-                  captureSection.classList.remove("starting");
-                }
-              });
-
-              session.addEventListener("clientConsumerAdded", (event) => {
-                if (captureSection._producerSession === session) {
-                  console.info(`client consumer added: ${event.detail.peerId}`);
-                }
-              });
-
-              session.addEventListener("clientConsumerRemoved", (event) => {
-                if (captureSection._producerSession === session) {
-                  console.info(`client consumer removed: ${event.detail.peerId}`);
-                }
-              });
-
-              captureSection.classList.add("has-session");
-              session.start();
-            } else {
-              for (const track of stream.getTracks()) {
-                track.stop();
-              }
-
-              captureSection.classList.remove("starting");
-            }
-          }).catch((error) => {
-            console.error("cannot have access to webcam and microphone", error);
-            captureSection.classList.remove("starting");
-          });
-        }
-      });
     }
 
     function initRemoteStreams(api) {
@@ -309,7 +232,7 @@
           if (!document.getElementById(producerId)) {
             remoteStreamsElement.insertAdjacentHTML("beforeend",
               `<li id="${producerId}">
-                                <div class="button">${producer.meta.name || producerId}</div>
+                                <div class="button">Connect</div>
                                 <div class="video">
                                     <div class="spinner">
                                         <div></div>
@@ -319,7 +242,6 @@
                                     </div>
                                     <span class="remote-control">&#xA9;</span>
                                     <video></video>
-                                    <div class="fullscreen"><span title="Toggle fullscreen">&#x25A2;</span></div>
                                 </div>
                             </li>`);
 
@@ -332,6 +254,7 @@
               }
             });
 
+            
             entryElement.addEventListener("click", (event) => {
               event.preventDefault();
               if (!event.target.classList.contains("button")) {
@@ -339,53 +262,54 @@
               }
 
               if (entryElement._consumerSession) {
-                entryElement._consumerSession.close();
-              } else {
-                const session = api.createConsumerSession(producerId);
-                if (session) {
-                  entryElement._consumerSession = session;
+              entryElement._consumerSession.close();
+            } else {
+              const session = api.createConsumerSession(producerId);
+              if (session) {
+                entryElement._consumerSession = session;
 
-                  session.addEventListener("error", (event) => {
-                    if (entryElement._consumerSession === session) {
-                      console.error(event.message, event.error);
+                session.addEventListener("error", (event) => {
+                  if (entryElement._consumerSession === session) {
+                    console.error(event.message, event.error);
+                  }
+                });
+
+                session.addEventListener("closed", () => {
+                  if (entryElement._consumerSession === session) {
+                    videoElement.pause();
+                    videoElement.srcObject = null;
+                    entryElement.classList.remove("has-session", "streaming", "has-remote-control");
+                    delete entryElement._consumerSession;
+                  }
+                });
+
+                session.addEventListener("streamsChanged", () => {
+                  if (entryElement._consumerSession === session) {
+                    const streams = session.streams;
+                    if (streams.length > 0) {
+                      videoElement.srcObject = streams[0];
+                      videoElement.play().catch(() => {});
                     }
-                  });
+                  }
+                });
 
-                  session.addEventListener("closed", () => {
-                    if (entryElement._consumerSession === session) {
-                      videoElement.pause();
-                      videoElement.srcObject = null;
-                      entryElement.classList.remove("has-session", "streaming", "has-remote-control");
-                      delete entryElement._consumerSession;
+                session.addEventListener("remoteControllerChanged", () => {
+                  if (entryElement._consumerSession === session) {
+                    const remoteController = session.remoteController;
+                    if (remoteController) {
+                      entryElement.classList.add("has-remote-control");
+                      remoteController.attachVideoElement(videoElement);
+                    } else {
+                      entryElement.classList.remove("has-remote-control");
                     }
-                  });
+                  }
+                });
 
-                  session.addEventListener("streamsChanged", () => {
-                    if (entryElement._consumerSession === session) {
-                      const streams = session.streams;
-                      if (streams.length > 0) {
-                        videoElement.srcObject = streams[0];
-                        videoElement.play().catch(() => {});
-                      }
-                    }
-                  });
-
-                  session.addEventListener("remoteControllerChanged", () => {
-                    if (entryElement._consumerSession === session) {
-                      const remoteController = session.remoteController;
-                      if (remoteController) {
-                        entryElement.classList.add("has-remote-control");
-                        remoteController.attachVideoElement(videoElement);
-                      } else {
-                        entryElement.classList.remove("has-remote-control");
-                      }
-                    }
-                  });
-
-                  entryElement.classList.add("has-session");
-                  session.connect();
-                }
+                entryElement.classList.add("has-session");
+                session.connect();
               }
+            }
+            
             });
           }
         },
@@ -417,6 +341,7 @@
       });
 
       const signalingProtocol = window.location.protocol.startsWith("https") ? "wss" : "ws";
+      console.log(`${signalingProtocol}://${window.location.host}/webrtc`)
       const gstWebRTCConfig = {
         meta: { name: `WebClient-${Date.now()}` },
         signalingServerUrl: `${signalingProtocol}://${window.location.host}/webrtc`,
@@ -430,25 +355,11 @@
 </head>
 
 <body>
-  <header>
-    <h1>GstWebRTC API</h1>
-  </header>
   <main>
     <section id="capture">
-      <span class="client-id">none</span>
-      <button class="button" id="capture-button"></button>
-      <div class="video">
-        <div class="spinner">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-        </div>
-        <video></video>
-      </div>
+      <span class="client-id" style="display: none;">none</span>
     </section>
     <section>
-      <h1>Remote Streams</h1>
       <ul id="remote-streams"></ul>
     </section>
   </main>
