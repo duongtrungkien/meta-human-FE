@@ -1,12 +1,12 @@
 import axios from "axios"
 
-const baseURL = "https://localhost:8000"
+const baseURL = "http://localhost:8000"
 
 
 
 
-export async function sendText() {
-    const result = await axios.post(baseURL + "/send_text")
+export async function sendText(userMessage) {
+    const result = await axios.post(baseURL + "/send_text", userMessage)
     .then(response => {
         return response
     }).catch(error => {
