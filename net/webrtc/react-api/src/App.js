@@ -1,7 +1,13 @@
 import './App.css';
 import { useRef, useEffect, useState } from 'react';
-import {fromDefaultMicrophone} from "./utils/asr.js"
-import {fetchHostData} from "./api/api.js"
+import { fromDefaultMicrophone } from "./utils/asr.js"
+import { fetchHostData } from "./api/api.js"
+import WebFont from 'webfontloader';
+import { Container } from "./components/Container.js"
+import { Header } from './components/Header.js';
+import { Section } from './components/Section.js';
+import logo from './assets/Elisa_Logo.png';
+
 
 function initCapture(api) {
   console.log("init capture")
@@ -122,11 +128,18 @@ function App() {
   const [hostData, setHostData] = useState([])
   const [checkinState, setCheckinState] = useState(0)
 
-  useEffect(async () => {
-    const response = await fetchHostData()
-    setHostData(response)
-  }, [])
+  // useEffect(async () => {
+  //   const response = await fetchHostData()
+  //   setHostData(response)
+  // }, [])
 
+  useEffect(() => {
+    WebFont.load({
+      google: {
+        families: ['Open Sans']
+      }
+    });
+   }, []);
 
   useEffect(() => {
     if (!mounted.current) {
@@ -137,8 +150,8 @@ function App() {
         };
         
         const api = new window.GstWebRTCAPI(gstWebRTCConfig);
-        initCapture(api);
-        initRemoteStreams(api);
+        // initCapture(api);
+        // initRemoteStreams(api);
       }
     } else {
 
@@ -148,26 +161,21 @@ function App() {
 
   return (
     <div className="App">
-      <main>
-      <section id="capture">
-        <span className="client-id" style={{display: 'none' }}>none</span>
-      </section>
-      <section style={{width: 720, height: 480}}>
-        <div id="remote-streams"></div>
-        <button onClick={async () => {
-          const recognizedText = await fromDefaultMicrophone()
-          setText(recognizedText)
-          }}>
-            Checkin
-        </button>
-        <button onClick={async () => {
-          const recognizedText = await fromDefaultMicrophone()
-          setText(recognizedText)
-          }}>
-            You can ask anything about Elisa
-        </button>
-      </section>
-      </main>
+      <Container>
+        <Header/>
+        <div style={{display: "flex", flexFlow: "row"}}> 
+          <Section containerStyle={{display: "flex", justifyContent: "space-between", flexFlow: "column"}}>
+            <section id="capture">
+              <span className="client-id" style={{display: 'none' }}>none</span>
+            </section>
+            <section style={{width: "80%", height: "80%", margin: "auto"}}>
+              <div id="remote-streams"></div>
+            </section>
+            <img style={{width: "144px", height: "64px"}} src={logo} alt="logo" />
+          </Section>
+          <Section></Section>
+        </div>
+      </Container>
     </div>
   );
 }
