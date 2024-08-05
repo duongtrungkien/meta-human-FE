@@ -3,12 +3,18 @@ import { useState } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 
-export const Dropdown = ({options, isDropdownOpen, setIsDropdownOpen}) => {
+export const Dropdown = ({options, isDropdownOpen, setIsDropdownOpen, handleSelect}) => {
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
     };
 
-    const [selected, setSelected] = useState(options[0])    
+    const [selected, setSelected] = useState(options[0].lang)    
+
+    const handleClickItem = (item) => {
+      setSelected(item.lang)
+      handleSelect(item)
+      setIsDropdownOpen(!isDropdownOpen)
+    }
 
     return (
       <div style={{display: "flex", 
@@ -22,9 +28,13 @@ export const Dropdown = ({options, isDropdownOpen, setIsDropdownOpen}) => {
                 position: "relative",
         }}>
         {
-          isDropdownOpen && (<div style={{display: "flex", flexFlow: "column", overflow: "visible", position: "absolute", top: "50px", left: "10px"}}>
+          isDropdownOpen && (<div style={{display: "flex", flexFlow: "column", 
+                                          overflow: "visible", position: "absolute", 
+                                          top: "48px", left: "-1px", borderColor: "#8D8D95", 
+                                          borderStyle: "solid", borderWidth: "1px 1px 0px 1px", 
+                                          width: "100%", backgroundColor: "#FFF"}}>
               {options.map((item) => (
-                  <span key={item}>{item}</span>
+                  <span onClick={() => handleClickItem(item)} style={{padding: "5px 20px", borderWidth: "0px 0px 1px 0px", borderColor: "#8D8D95", borderStyle: "solid"}} key={item.codeName}>{item.lang}</span>
               ))}
           </div>)
         }

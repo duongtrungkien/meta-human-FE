@@ -3,10 +3,18 @@ import axios from "axios"
 const baseURL = "http://localhost:8000"
 
 
+export async function sendUserMessage(userMessage) {
+    const result = await axios.post(baseURL + "/send/user_message", userMessage)
+    .then(response => {
+        return response
+    }).catch(error => {
+        return error
+    })
+    return result 
+}
 
-
-export async function sendText(userMessage) {
-    const result = await axios.post(baseURL + "/send_text", userMessage)
+export async function sendAIMessage(AIMessage) {
+    const result = await axios.post(baseURL + "/send/ai_message", AIMessage)
     .then(response => {
         return response
     }).catch(error => {
@@ -25,8 +33,8 @@ export async function fetchHostData() {
     return result
 }
 
-export async function informHost() {
-    const result = await axios.post(baseURL + "/checkin/inform_host")
+export async function informHost(data) {
+    const result = await axios.post(baseURL + "/checkin/inform_host", data)
     .then(response => {
         return response
     }).catch(error => {

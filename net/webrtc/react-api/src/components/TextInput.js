@@ -8,9 +8,19 @@ import { faMicrophone, faCircleQuestion } from '@fortawesome/free-solid-svg-icon
 export const TextInput = ({onSend, onTalk, onReset}) => {
     const [text, setText] = useState("")
 
+    const handleSend = () => {
+        onSend(text)
+        setText("")
+    }
+
+    const handleReset = () => {
+        onReset()
+        setText("")
+    }
+
     return (
         <div style={{display: "flex", flexFlow: "row", height: "48px", width: "100%"}}>
-            <IconButton onClick={onReset}>
+            <IconButton onClick={handleReset}>
                 <FontAwesomeIcon icon={faCircleQuestion} style={{fontSize: "24px"}}/>
             </IconButton>
             <input style={{height: "46px", width: "100%", 
@@ -22,7 +32,7 @@ export const TextInput = ({onSend, onTalk, onReset}) => {
             <IconButton onClick={onTalk}>
                 <FontAwesomeIcon icon={faMicrophone} style={{fontSize: "24px"}}/>
             </IconButton>
-            <TextButton onClick={onSend}>SEND</TextButton>
+            <TextButton onClick={handleSend}>SEND</TextButton>
         </div>
     )
 }

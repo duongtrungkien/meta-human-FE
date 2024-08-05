@@ -1,9 +1,9 @@
 import sdk from "microsoft-cognitiveservices-speech-sdk"
 
-export async function fromDefaultMicrophone() {
+export async function fromDefaultMicrophone(language_code) {
     // This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
     const speechConfig = sdk.SpeechConfig.fromSubscription("db5204f3575f43b2b0de8d9aa4ea5d3c", "northeurope");
-    speechConfig.speechRecognitionLanguage = "en-US";
+    speechConfig.speechRecognitionLanguage = language_code;
     let audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
     let speechRecognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
     let outputText = "";
@@ -11,10 +11,10 @@ export async function fromDefaultMicrophone() {
 
     switch (result.reason) {
             case sdk.ResultReason.RecognizedSpeech:
-                outputText = `RECOGNIZED: Text=${result.text}`;
+                outputText = `${result.text}`;
                 break;
             case sdk.ResultReason.NoMatch:  
-                outputText = "NOMATCH: Speech could not be recognized.";
+                outputText = "Speech could not be recognized.";
                 break;
             case sdk.ResultReason.Canceled:
                 const cancellation = sdk.CancellationDetails.fromResult(result);

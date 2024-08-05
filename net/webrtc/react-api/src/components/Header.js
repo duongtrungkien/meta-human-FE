@@ -2,9 +2,12 @@ import React from "react";
 import { useState } from "react";
 import { Dropdown } from "./DropDown.js";
 
-export const Header = () => {
+export const Header = ({setLanguage}) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    
+    const languageOptions = [{lang: "English", codeName: "en-US"}, {lang: "Finnish", codeName: "fi-FI"}]
+    const handleSelect = (item) => {
+        setLanguage(item.codeName)
+    }
 
     return (
         <div style={{display: "flex", 
@@ -16,7 +19,7 @@ export const Header = () => {
                     alignItems: "center"
         }}>
             <h1 style={{fontFamily: "Open Sans"}}>Elisa Reception Assistant</h1>
-            <Dropdown options={["English", "Finish"]}  isDropdownOpen={isDropdownOpen} setIsDropdownOpen={(value) => {setIsDropdownOpen(value)}}/>
+            <Dropdown options={languageOptions}  isDropdownOpen={isDropdownOpen} setIsDropdownOpen={(value) => {setIsDropdownOpen(value)}} handleSelect={handleSelect}/>
         </div>
     )
 }
