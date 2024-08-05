@@ -1,8 +1,9 @@
 import sdk from "microsoft-cognitiveservices-speech-sdk"
+import { SPEECH_KEY } from "./key.js";
 
 export async function fromDefaultMicrophone(language_code) {
     // This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
-    const speechConfig = sdk.SpeechConfig.fromSubscription("db5204f3575f43b2b0de8d9aa4ea5d3c", "northeurope");
+    const speechConfig = sdk.SpeechConfig.fromSubscription(SPEECH_KEY, "northeurope");
     speechConfig.speechRecognitionLanguage = language_code;
     let audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
     let speechRecognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
