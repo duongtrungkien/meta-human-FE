@@ -1,7 +1,9 @@
 import './App.css';
 import { useEffect, useState } from 'react';
 import { fromDefaultMicrophone } from "./utils/asr.js"
-import { fetchHostData, sendUserMessage, sendAIMessage, informHost } from "./api/api.js"
+import { sendUserMessage, sendAIMessage, 
+        informHost, changeGesture,
+        addStream, removeStream } from "./api/api.js"
 import WebFont from 'webfontloader';
 import { Container } from "./components/Container.js"
 import { Header } from './components/Header.js';
@@ -108,10 +110,16 @@ function App() {
   const [language, setLanguage] = useState(["en-US"])
   const [visitorName, setVisitorName] = useState("")
 
-  useEffect(async () => {
-    const response = await fetchHostData()
-    setHostData(response)
-  }, [])
+  useEffect(() => {
+    const handleBeforeUnload = async (event) => {
+      event.preventDefault();
+      onReset()
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   useEffect(() => {
     WebFont.load({
@@ -133,9 +141,6 @@ function App() {
         initCapture(api);
         initRemoteStreams(api);
       }
-      const openingMessage = {content: "Hi! I'm Elisa Ai reception assistant. I will help you inform your host. Can I know your name, please?"}
-      sendAIMessage(openingMessage)
-      setConvetsation([...conversation, {sender: "ai", content: openingMessage.content}])
     }
   }, [isSessionStart]);
 
@@ -143,54 +148,67 @@ function App() {
     let message = {}
     switch(checkinState) {
       case 0:
-        setVisitorName(text)
-        message.content = "It looks like you haven't checkin. Can I have your email address, please?"
-        await sendAIMessage(message)
+        message = {
+          "en-US": {content: "Awsome! can I have your host email address?", language: language},
+          "fi-FI": {content: "Mahtavaa! saanko isäntäsähköpostiosoitteesi?", language: language}
+        }
+        console.log()
+        await sendAIMessage(message[language])
         setCheckinState(1)
-        return message.content
+        return message[language].content
       case 1:
-        message = {content: "Awsome now can I have your host email address?"}
-        await sendAIMessage(message)
-        setCheckinState(2)
-        return message.content
-      case 2:
-        message = {content: "Great! I have sent notification email to the host. Do you want to ask me any question?"}
         await informHost({host_email: text, visitor_name: visitorName})
-        await sendAIMessage(message)
-        setCheckinState(3)
-        return message.content  
+        message = {
+          "en-US": {content: "I'm sending a notification to your host. Great! He or she will come here soon. Do you want to ask me any question about Elisa while waiting?", language: language},
+          "fi-FI": {content: "Lähetän ilmoituksen isännällesi. Loistava! Hän tulee tänne pian. Haluatko kysyä minulta kysymyksiä Elisasta odottaessasi?", language: language}
+        }
+        await sendAIMessage(message[language])
+        setCheckinState(2)
+        return message[language].content
       default:
         return
     }
   }
 
   const onTalk = async (lang) => {
-    if (checkinState < 3) {
+    if (checkinState < 2) {
       const recognizedText = await fromDefaultMicrophone(lang)
       const response = await handleCheckin(recognizedText)
       setConvetsation([...conversation, {sender: "human", content: recognizedText}, {sender: "ai", content: response}])
     } else {
       const recognizedText = await fromDefaultMicrophone(lang)
-      const response = await sendUserMessage({content: recognizedText})
+      const response = await sendUserMessage({content: recognizedText, language: language})
       setConvetsation([...conversation, {sender: "human", content: recognizedText}, {sender: "ai", content: response.data.response_text}])
     }
   }
 
   const onSend = async (text) => {
-    if (checkinState < 3) {
+    if (checkinState < 2) {
       const response =  await handleCheckin(text)
       setConvetsation([...conversation, {sender: "human", content: text}, {sender: "ai", content: response}])
     } else {
-      setConvetsation([...conversation, {sender: "human", content: text}])
-      const response = await sendUserMessage({content: text})
+      const response = await sendUserMessage({content: text, language: language})
       setConvetsation([...conversation, {sender: "human", content: text}, {sender: "ai", content: response.data.response_text}])
     }
   }
 
   const onReset = () => {
     setIsSessionStart(false)
+    setCheckinState(0)
     setVisitorName("")
     setConvetsation([])
+    removeStream()
+  }
+
+  const onStart = async () => {
+    setIsSessionStart(true)
+    await addStream()
+    const openingMessage = {
+      "en-US" : {content: "Hello! Welcome to Elisa. Can I know your name, please?", gesture: "Welcome", language: language},
+      "fi-FI" : {content: "Hei! Tervetuloa Elisaan. Voinko tietää nimesi, kiitos?", gesture: "Welcome", language: language}
+    }
+    sendAIMessage(openingMessage[language])
+    setConvetsation([...conversation, {sender: "ai", content: openingMessage[language].content}])
   }
 
   return (
@@ -214,7 +232,7 @@ function App() {
           <Section>
             <ConversationBox conversation={conversation} onSend={onSend} onTalk={() => onTalk(language)} onReset={onReset}/>
           </Section>
-        </div> : <StartScreen onStart={() => {setIsSessionStart(true)}}/>}
+        </div> : <StartScreen onStart={onStart}/>}
         
       </Container>
     </div>

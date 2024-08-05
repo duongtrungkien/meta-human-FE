@@ -42,3 +42,33 @@ export async function informHost(data) {
     })
     return result
 }
+
+export async function changeGesture(data) {
+    const result = await axios.post(baseURL + "/send/gesture", data)
+    .then(response => {
+        return response
+    }).catch(error => {
+        return error
+    })
+    return result
+}
+
+export async function addStream() {
+    const result = await axios.post(baseURL + "/streams/add_stream")
+    .then(response => {
+        return response
+    }).catch(error => {
+        return error
+    })
+    return result
+}
+
+export async function removeStream() {
+    const result = await axios.post(baseURL + "/streams/remove_stream")
+    .then(response => {
+        return response
+    }).catch(error => {
+        return error
+    })
+    return result
+}
