@@ -203,8 +203,8 @@ function App() {
     setIsSessionStart(true)
     await addStream()
     const openingMessage = {
-      "en-US" : {content: "Hello! Welcome to Elisa. Can I know your name, please?", gesture: "Welcome", language: language},
-      "fi-FI" : {content: "Hei! Tervetuloa Elisaan. Voinko tietää nimesi, kiitos?", gesture: "Welcome", language: language}
+      "en-US" : {content: "Hello! Welcome to Elisa.", gesture: "Welcome", language: language},
+      "fi-FI" : {content: "Hei! Tervetuloa Elisaan.", gesture: "Welcome", language: language}
     }
     sendAIMessage(openingMessage[language])
     setConvetsation([...conversation, {sender: "ai", content: openingMessage[language].content}])
