@@ -12,6 +12,7 @@ import { ConversationBox } from './components/ConversationBox.js';
 import { StartScreen } from './components/StartScreen.js';
 import logo from './assets/Elisa_Logo.png';
 
+const TOKEN = "a1fe4418-6926-11ef-b864-0242ac120002"
 
 function initCapture(api) {
   const captureSection = document.getElementById("capture");
@@ -109,6 +110,7 @@ function App() {
   const [conversation, setConvetsation] = useState([])
   const [language, setLanguage] = useState(["en-US"])
   const [visitorName, setVisitorName] = useState("")
+  
 
   useEffect(() => {
     const handleBeforeUnload = async (event) => {
@@ -210,8 +212,12 @@ function App() {
     setConvetsation([...conversation, {sender: "ai", content: openingMessage[language].content}])
   }
 
+  const search = window.location.search;
+  const params = new URLSearchParams(search);
+  const token = params.get('token')
   return (
     <div className="App">
+      {token === TOKEN ? 
       <Container>
         <Header setLanguage={(langCode) => {setLanguage(langCode)}}/>
         {isSessionStart ? <div style={{display: "flex", flexFlow: "row"}}> 
@@ -232,7 +238,7 @@ function App() {
             <ConversationBox conversation={conversation} onSend={onSend} onTalk={() => onTalk(language)} onReset={onReset}/>
           </Section>
         </div> : <StartScreen onStart={onStart}/>}
-      </Container>
+      </Container> : <Container/>}
     </div>
   );
 }
