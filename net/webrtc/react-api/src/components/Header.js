@@ -18,8 +18,8 @@ export const Header = ({setLanguage}) => {
                     padding: "0px 15px",
                     alignItems: "center"
         }}>
-            <h1 style={{fontFamily: "Open Sans"}}>Elisa Reception Assistant</h1>
-            <Dropdown options={languageOptions}  isDropdownOpen={isDropdownOpen} setIsDropdownOpen={(value) => {setIsDropdownOpen(value)}} handleSelect={handleSelect}/>
+            <h1 style={{fontFamily: "Open Sans"}}>Elisa Digital Human</h1>
+            {/* <Dropdown options={languageOptions}  isDropdownOpen={isDropdownOpen} setIsDropdownOpen={(value) => {setIsDropdownOpen(value)}} handleSelect={handleSelect}/> */}
         </div>
     )
 }
